@@ -12,8 +12,8 @@
 SYSTEMCHECK=1
 DISABLE=0
 DeBUG=0
-INEXISTENCEVER=1.0.7
-INEXISTENCEDATE=2018.09.03
+INEXISTENCEVER=1.0.8
+INEXISTENCEDATE=2018.10.23
 # --------------------------------------------------------------------------------
 
 
@@ -238,7 +238,7 @@ CODENAME=`  cat /etc/os-release | grep VERSION= | tr '[A-Z]' '[a-z]' | sed 's/\"
 # 如果系统是 Debian 7 或 Ubuntu 14.04，询问是否升级到 Debian 8 / Ubuntu 16.04
 [[ $SysSupport == 2 ]] && _ask_distro_upgrade
 
-# rTorrent 是否只能安装 feature-bind branch
+# rTorrent 是否只能安装 feature-bind branch 的 0.9.6 或者 0.9.7 及以上
 [[ $CODENAME =~ (stretch|bionic) ]] && rtorrent_dev=1
 
 # 检查本脚本是否支持当前系统，可以关闭此功能
@@ -276,10 +276,11 @@ if [[ ! -n `command -v wget` ]]; then echo "${bold}Now the script is installing 
   serveripv6=$( wget -t1 -T5 -qO- v6.ipv6-test.com/api/myip.php | grep -Eo "[0-9a-z:]+" | head -n1 )
 # serveripv6=$( wget --no-check-certificate -qO- -t1 -T8 ipv6.icanhazip.com )
 
-# [ -n "$(grep 'eth0:' /proc/net/dev)" ] && wangka=eth0 || wangka=`cat /proc/net/dev |awk -F: 'function trim(str){sub(/^[ \t]*/,"",str); sub(/[ \t]*$/,"",str); return str } NR>2 {print trim($1)}'  |grep -Ev '^lo|^sit|^stf|^gif|^dummy|^vmnet|^vir|^gre|^ipip|^ppp|^bond|^tun|^tap|^ip6gre|^ip6tnl|^teql|^venet|^he-ipv6|^docker' |awk 'NR==1 {print $0}'`
-# wangka=` ifconfig -a | grep -B 1 $(ip route get 8.8.8.8 | awk 'NR==1 {print $NF}') | head -n1 | awk '{print $1}' | sed "s/:$//"  `
-# wangka=`  ip route get 8.8.8.8 | awk '{print $5}'  `
-# serverlocalipv6=$( ip addr show dev $wangka | sed -e's/^.*inet6 \([^ ]*\)\/.*$/\1/;t;d' | head -n1 )
+# 2018.10.10 重新启用对于网卡的判断。我忘了是出于什么原因我之前禁用了它？
+[ -n "$(grep 'eth0:' /proc/net/dev)" ] && wangka=eth0 || wangka=`cat /proc/net/dev |awk -F: 'function trim(str){sub(/^[ \t]*/,"",str); sub(/[ \t]*$/,"",str); return str } NR>2 {print trim($1)}'  |grep -Ev '^lo|^sit|^stf|^gif|^dummy|^vmnet|^vir|^gre|^ipip|^ppp|^bond|^tun|^tap|^ip6gre|^ip6tnl|^teql|^venet|^he-ipv6|^docker' |awk 'NR==1 {print $0}'`
+wangka=` ifconfig -a | grep -B 1 $(ip route get 8.8.8.8 | awk 'NR==1 {print $NF}') | head -n1 | awk '{print $1}' | sed "s/:$//"  `
+wangka=`  ip route get 8.8.8.8 | awk '{print $5}'  `
+# serverlocalipv6=$( ip addr show dev $wangka | sed -e's/^.*inet6 \([^ ]*\)\/.*$/\1/;t;d' | grep -v fe80 | head -n1 )
 
 
 
@@ -321,7 +322,7 @@ if [[ ! -n `command -v wget` ]]; then echo "${bold}Now the script is installing 
 
   QB_repo_ver=` apt-cache policy qbittorrent-nox | grep -B1 http | grep -Eo "[234]\.[0-9.]+\.[0-9.]+" | head -n1 `
   [[ -z $QB_repo_ver ]] && { [[ $CODENAME == bionic ]] && QB_repo_ver=4.0.3 ; [[ $CODENAME == xenial ]] && QB_repo_ver=3.3.1 ; [[ $CODENAME == jessie ]] && QB_repo_ver=3.1.10 ; [[ $CODENAME == stretch ]] && QB_repo_ver=3.3.7 ; }
-  QB_latest_ver=4.1.2
+  QB_latest_ver=4.1.3
   QB_latest_ver=` wget -qO- https://github.com/qbittorrent/qBittorrent/releases | grep releases/tag | grep -Eo "[45]\.[0-9.]+" | head -n1 `
 
   DE_repo_ver=` apt-cache policy deluged | grep -B1 http | grep -Eo "[12]\.[0-9.]+\.[0-9.]+" | head -n1 `
@@ -705,12 +706,11 @@ while [[ $QBVERSION = "" ]]; do
     echo -e "${green}02)${normal} qBittorrent ${cyan}3.3.11${normal}"
     echo -e "${green}03)${normal} qBittorrent ${cyan}3.3.14${normal}"
     echo -e "${green}04)${normal} qBittorrent ${cyan}3.3.16${normal}"
-    echo -e "${green}11)${normal} qBittorrent ${cyan}4.0.2${normal}"
-    echo -e "${green}12)${normal} qBittorrent ${cyan}4.0.3${normal}"
-    echo -e "${green}13)${normal} qBittorrent ${cyan}4.0.4${normal}"
-    echo -e "${green}14)${normal} qBittorrent ${cyan}4.1.0${normal}"
-    echo -e "${green}15)${normal} qBittorrent ${cyan}4.1.1${normal}"
-    echo -e "${green}16)${normal} qBittorrent ${cyan}4.1.2${normal}"
+    echo -e "${green}11)${normal} qBittorrent ${cyan}4.0.4${normal}"
+    echo -e "${green}12)${normal} qBittorrent ${cyan}4.1.0${normal}"
+    echo -e "${green}13)${normal} qBittorrent ${cyan}4.1.1${normal}"
+    echo -e "${green}14)${normal} qBittorrent ${cyan}4.1.2${normal}"
+    echo -e "${green}15)${normal} qBittorrent ${cyan}4.1.3${normal}"
     echo -e "${green}30)${normal} Select another version"
     echo -e "${green}40)${normal} qBittorrent ${cyan}$QB_repo_ver${normal} from ${cyan}repo${normal}"
     [[ $DISTRO == Ubuntu ]] &&
@@ -728,18 +728,18 @@ while [[ $QBVERSION = "" ]]; do
         02 | 2) QBVERSION=3.3.11 ;;
         03 | 3) QBVERSION=3.3.14 ;;
         04 | 4) QBVERSION=3.3.16 ;;
-        11) QBVERSION=4.0.2 ;;
-        12) QBVERSION=4.0.3 ;;
-        13) QBVERSION=4.0.4 ;;
-        14) QBVERSION=4.1.0 ;;
-        15) QBVERSION=4.1.1 ;;
-        16) QBVERSION=4.1.2 ;;
+        11) QBVERSION=4.0.4 ;;
+        12) QBVERSION=4.1.0 ;;
+        13) QBVERSION=4.1.1 ;;
+        14) QBVERSION=4.1.2 ;;
+        15) QBVERSION=4.1.3 ;;
         21) QBVERSION='3.3.11 (Skip hash check)' ;;
+        22) QBVERSION=4.1.1.1 ;;
         30) _inputversion && QBVERSION="${inputversion}"  ;;
         40) QBVERSION='Install from repo' ;;
         50) QBVERSION='Install from PPA' ;;
         99) QBVERSION=No ;;
-        * | "") QBVERSION=4.1.1 ;;
+        * | "") QBVERSION=4.1.3 ;;
     esac
 
 done
@@ -892,9 +892,8 @@ while [[ $DELTVERSION = "" ]]; do
 
     else
 
-      # echo -e "${green}00)${normal} libtorrent-rasterbar ${cyan}0.16.19${normal} (NOT recommended)"
         echo -e "${green}01)${normal} libtorrent-rasterbar ${cyan}1.0.11${normal}"
-        echo -e "${green}02)${normal} libtorrent-rasterbar ${cyan}1.1.7 ${normal}"
+        echo -e "${green}02)${normal} libtorrent-rasterbar ${cyan}1.1.10 ${normal}"
         echo -e "${green}30)${normal} Select another version"
         echo -e "${green}40)${normal} libtorrent-rasterbar ${cyan}$PYLT_repo_ver${normal} from ${cyan}repo${normal}"
         [[ $DISTRO == Ubuntu ]] &&
@@ -912,7 +911,6 @@ while [[ $DELTVERSION = "" ]]; do
         echo -ne "${bold}${yellow}Which version of libtorrent do you want?${normal} (Default ${cyan}01${normal}): " ; read -e version
 
         case $version in
-              00 | 0) DELTVERSION=RC_0_16 ;;
               01 | 1) DELTVERSION=1.0.11 && DeLTDefault=1 ;;
               02 | 2) DELTVERSION=RC_1_1 ;;
               03 | 3) DELTVERSION=RC_1_0 ;;
@@ -981,11 +979,11 @@ while [[ $RTVERSION = "" ]]; do
     echo -e "${green}01)${normal} rTorrent ${cyan}0.9.2${normal}" &&
     echo -e "${green}02)${normal} rTorrent ${cyan}0.9.3${normal}" &&
     echo -e "${green}03)${normal} rTorrent ${cyan}0.9.4${normal}" &&
-    echo -e "${green}04)${normal} rTorrent ${cyan}0.9.6${normal}" &&
+    echo -e "${green}04)${normal} rTorrent ${cyan}0.9.6${normal} (released on Sep 04, 2015)" &&
     echo -e "${green}11)${normal} rTorrent ${cyan}0.9.2${normal} (with IPv6 support)" &&
     echo -e "${green}12)${normal} rTorrent ${cyan}0.9.3${normal} (with IPv6 support)" &&
     echo -e "${green}13)${normal} rTorrent ${cyan}0.9.4${normal} (with IPv6 support)"
-    echo -e "${green}14)${normal} rTorrent ${cyan}0.9.6${normal} (feature-bind branch on Jun 6, 2018)"
+    echo -e "${green}14)${normal} rTorrent ${cyan}0.9.6${normal} (feature-bind branch on Jan 30, 2018)"
     echo -e "${green}15)${normal} rTorrent ${cyan}0.9.7${normal} (with IPv6 support)"
     echo -e   "${red}99)${normal} Do not install rTorrent"
 
@@ -1666,7 +1664,13 @@ dstat sysstat vnstat vmstat htop iotop smartmontools virt-what lsb-release iperf
 
 # test -z "$install_list" || apt-get -y install $install_list
 
-apt-get install -y python dstat sysstat vnstat wondershaper lrzsz mtr tree figlet toilet lolcat psmisc dirmngr zip unzip locales aptitude ntpdate smartmontools ruby screen git sudo zsh virt-what lsb-release curl checkinstall ca-certificates apt-transport-https iperf3 uuid gcc make gawk build-essential rsync speedtest-cli bc htop atop iotop
+# 其实很多包可能对于很多人没用，私货私货……
+apt-get install -y \
+screen git sudo zsh virt-what lsb-release curl python lrzsz locales aptitude gawk jq bc \
+speedtest-cli mtr iperf iperf3 wondershaper \
+htop atop iotop dstat sysstat vnstat smartmontools psmisc dirmngr \
+ca-certificates apt-transport-https gcc make checkinstall build-essential \
+tree figlet toilet lolcat zip unzip ntpdate ruby uuid rsync socat
 
 if [ ! $? = 0 ]; then
     echo -e "\n${baihongse}${shanshuo}${bold} ERROR ${normal} ${red}${bold}Failed to install packages, please check it and rerun once it is resolved${normal}\n"
@@ -1903,6 +1907,14 @@ else
         echo -e "\n\n\nQB 4.1.2 WebUI Fix (FOR LOG)\n\n\n"
     fi
 
+    # 这是 qBittorrent master 分支 merge pr #9375 #8217 以后，把版本号从 4.2.0.alpha 改成了 4.1.1
+    # 等官方 merge 都不知道要啥时候了，用着也没啥问题，自己先用用吧……
+    if [[ $QBVERSION == 4.1.1.1 ]]; then
+        cd ..
+        git clone --depth=1 https://github.com/Aniverse/qbt411master
+        cd qbt411master
+    fi
+
     if [[ $QBPATCH == Yes ]]; then
         git config --global user.email "you@example.com"
         git config --global user.name "Your Name"
@@ -1997,7 +2009,7 @@ function _installde() {
 
 if [[ $DEVERSION == "Install from repo" ]]; then
 
-    apt-get install -y deluged deluge-web
+    apt-get install -y deluge deluged deluge-web deluge-console deluge-gtk 
 
 elif [[ $DEVERSION == "Install from PPA" ]]; then
 
@@ -2005,9 +2017,11 @@ elif [[ $DEVERSION == "Install from PPA" ]]; then
     add-apt-repository -y ppa:deluge-team/ppa
     apt-get update
     apt-get install -y --allow-change-held-packages --allow-downgrades libtorrent-rasterbar8 python-libtorrent
+    # 写两次是为了防止以后 Deluge PPA 升级后指定版本无效（不过其实我可以设定检测版本的，暂时懒得搞了）
+    # 指定版本是为了在同时启用 Deluge 和 qBittorrent PPA 的情况下使用 libtorrent-rasterbar 1.0.11，毕竟 Deluge 1.3.15 对 libtorrent 1.1 支持还不完善
     apt-get install -y --allow-change-held-packages --allow-downgrades libtorrent-rasterbar8=1.0.11-1~xenial~ppa1.1 python-libtorrent=1.0.11-1~xenial~ppa1.1
     apt-mark hold libtorrent-rasterbar8 python-libtorrent
-    apt-get install -y deluged deluge-web
+    apt-get install -y deluge deluged deluge-web deluge-console deluge-gtk 
 
 else
 
@@ -2105,6 +2119,16 @@ systemctl start deluge-web
 # systemctl enable {deluged,deluge-web}@${ANUSER}
 # systemctl start {deluged,deluge-web}@${ANUSER}
 
+# Deluge update-tracker，用于 AutoDL-Irssi
+deluged_ver_2=`deluged --version | grep deluged | awk '{print $2}'`
+deluged_port=$( grep daemon_port /root/.config/deluge/core.conf | grep -oP "\d+" )
+
+cp "${local_packages}"/script/special/update-tracker.py /usr/lib/python2.7/dist-packages/deluge-$deluged_ver_2-py2.7.egg/deluge/ui/console/commands/update-tracker.py
+sed -i "s/ANUSER/$ANUSER/g" /usr/local/bin/deluge-update-tracker
+sed -i "s/ANPASS/$ANPASS/g" /usr/local/bin/deluge-update-tracker
+sed -i "s/DAEMONPORT/$deluged_port/g" /usr/local/bin/deluge-update-tracker
+chmod +x /usr/lib/python2.7/dist-packages/deluge-$deluged_ver_2-py2.7.egg/deluge/ui/console/commands/update-tracker.py /usr/local/bin/deluge-update-tracker
+
 touch /etc/inexistence/01.Log/lock/deluge.lock ; }
 
 
@@ -2127,7 +2151,7 @@ else
     rtinst --ssh-default --ftp-default --rutorrent-master --force-yes --log $IPv6Opt -v $RTVERSIONIns -u $ANUSER -p $ANPASS -w $ANPASS
 fi
 
-rtwebmin
+# rtwebmin
 # openssl req -x509 -nodes -days 3650 -subj /CN=$serveripv4 -config /etc/ssl/ruweb.cnf -newkey rsa:2048 -keyout /etc/ssl/private/ruweb.key -out /etc/ssl/ruweb.crt
 
 [[ -e /etc/php5/fpm/php.ini ]] && sed -i 's/^.*memory_limi.*/memory_limit = 512M/' /etc/php5/fpm/php.ini
@@ -2315,7 +2339,8 @@ function _installflex() {
   apt-get -y install python-pip
   pip install --upgrade pip setuptools
   /usr/local/bin/pip install markdown
-  /usr/local/bin/pip install flexget 
+  /usr/local/bin/pip install flexget
+# /usr/local/bin/pip install flexget==2.16.2
   /usr/local/bin/pip install transmissionrpc
 
   mkdir -p /home/${ANUSER}/{transmission,qbittorrent,rtorrent,deluge}/{download,watch} /root/.config/flexget   #/home/${ANUSER}/.config/flexget
@@ -2608,12 +2633,11 @@ wget --no-check-certificate -qO /usr/local/bin/bluray https://github.com/Anivers
 chmod +x /usr/local/bin/bluray
 
 ########## 安装 新版 ffmpeg ##########
-
-cd ; wget --no-check-certificate -qO ffmpeg-3.4.2-64bit-static.tar.xz https://github.com/Aniverse/BitTorrentClientCollection/raw/master/Other%20Tools/ffmpeg-3.4.2-64bit-static.tar.xz
-tar xf ffmpeg-3.4.2-64bit-static.tar.xz
-rm -rf ffmpeg-*-64bit-static/{manpages,GPLv3.txt,readme.txt}
+cd ; wget --no-check-certificate -qO ffmpeg-4.0.2-64bit-static.tar.xz https://github.com/Aniverse/BitTorrentClientCollection/raw/master/Other%20Tools/ffmpeg-4.0.2-64bit-static.tar.xz
+tar xf ffmpeg-4.0.2-64bit-static.tar.xz
+rm -rf ffmpeg-*bit-static/{manpages,presets,model,readme.txt,GPLv3.txt}
 cp -f ffmpeg-*-64bit-static/* /usr/bin
-chmod 777 /usr/bin/{ffmpeg,ffprobe,ffmpeg-10bit,qt-faststart}
+chmod 755 /usr/bin/{ffmpeg,ffprobe,ffmpeg-10bit,qt-faststart}
 rm -rf ffmpeg-*-64bit-static*
 
 ########## 安装 新版 mkvtoolnix 与 mediainfo ##########
@@ -2669,14 +2693,14 @@ echo -e "${bailanse}\n\n\n\n\n  UPTOOLBOX-INSTALLATION-COMPLETED  \n\n\n\n${norm
 # --------------------- 一些设置修改 --------------------- #
 function _tweaks() {
 
-#修改时区
+# 修改时区
 rm -rf /etc/localtime
 ln -s /usr/share/zoneinfo/Asia/Shanghai  /etc/localtime
 ntpdate time.windows.com
 hwclock -w
 
 
-#screen 设置
+# screen 设置
 cat>>/etc/screenrc<<EOF
 shell -$SHELL
 
@@ -2688,11 +2712,13 @@ defscrollback 23333
 EOF
 
 
-#设置编码与alias
+# 设置编码与alias
 
 # sed -i '$d' /etc/bash.bashrc
 
-[[ `grep "Inexistence Mod" /etc/bash.bashrc` ]] && sed -i -n -e :a -e '1,141!{P;N;D;};N;ba' /etc/bash.bashrc
+[[ `grep "Inexistence Mod" /etc/bash.bashrc` ]] && sed -i -n -e :a -e '1,148!{P;N;D;};N;ba' /etc/bash.bashrc
+
+# 以后这堆私货另外处理吧，以后。上边那个检测也应该要改下
 
 cat>>/etc/bash.bashrc<<EOF
 
@@ -2713,13 +2739,14 @@ jiacu=\${normal}\${bold}
 shanshuo=\$(tput blink); wuguangbiao=\$(tput civis); guangbiao=\$(tput cnorm) ; }
 _colors
 
+function gclone(){ git clone --depth=1 \$1 && cd \$(echo \${1##*/}) ;}
 io_test() { (LANG=C dd if=/dev/zero of=test_\$\$ bs=64k count=16k conv=fdatasync && rm -f test_\$\$ ) 2>&1 | awk -F, '{io=\$NF} END { print io}' | sed 's/^[ \t]*//;s/[ \t]*\$//' ; }
 iotest() { io1=\$( io_test ) ; echo -e "\n\${bold}硬盘 I/O (第一次测试) : \${yellow}\$io1\${normal}"
 io2=\$( io_test ) ; echo -e "\${bold}硬盘 I/O (第二次测试) : \${yellow}\$io2\${normal}" ; io3=\$( io_test ) ; echo -e "\${bold}硬盘 I/O (第三次测试) : \${yellow}\$io3\${normal}\n" ; }
 
 wangka=` ip route get 8.8.8.8 | awk '{print $5}' | head -n1 `
 
-ulimit -SHn 666666
+ulimit -SHn 999999
 
 export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
@@ -2729,13 +2756,13 @@ alias qba="systemctl start qbittorrent"
 alias qbb="systemctl stop qbittorrent"
 alias qbc="systemctl status qbittorrent"
 alias qbr="systemctl restart qbittorrent"
-alias qbl="tail -n100 /etc/inexistence/01.Log/qbittorrent.log"
+alias qbl="tail -n300 /etc/inexistence/01.Log/qbittorrent.log"
 alias qbs="nano /root/.config/qBittorrent/qBittorrent.conf"
 alias dea="systemctl start deluged"
 alias deb="systemctl stop deluged"
 alias dec="systemctl status deluged"
 alias der="systemctl restart deluged"
-alias del="grep -v TotalTraffic /etc/inexistence/01.Log/deluged.log | tail -n100"
+alias del="grep -v TotalTraffic /etc/inexistence/01.Log/deluged.log | grep -v 'Successfully loaded' | grep -v 'Saving the state' | tail -n300"
 alias dewa="systemctl start deluge-web"
 alias dewb="systemctl stop deluge-web"
 alias dewc="systemctl status deluge-web"
@@ -2755,26 +2782,31 @@ alias irssib="su ${ANUSER} -c 'rt -i -k stop'"
 alias irssic="su ${ANUSER} -c 'rt -i'"
 alias irssir="su ${ANUSER} -c 'rt -i -k restart'"
 alias irssiscreen="chmod -R 777 /dev/pts && su ${ANUSER} -c 'screen -r irssi'"
-alias fla="systemctl start flexget"
-alias flaa="flexget daemon start --daemonize"
-alias flb="systemctl stop flexget"
-alias flc="systemctl status flexget"
-alias flcc="flexget daemon status"
-alias flr="systemctl restart flexget"
-alias flrr="flexget daemon reload-config"
-alias fll="echo ; tail -n100 /root/.config/flexget/flexget.log ; echo"
-alias fls="nano /root/.config/flexget/config.yml"
-alias flcheck="flexget check"
-alias fle="flexget execute"
-alias ssa="/etc/init.d/shadowsocks-r start"
-alias ssb="/etc/init.d/shadowsocks-r stop"
-alias ssc="/etc/init.d/shadowsocks-r status"
-alias ssr="/etc/init.d/shadowsocks-r restart"
+alias fga="systemctl start flexget"
+alias fgaa="flexget daemon start --daemonize"
+alias fgb="systemctl stop flexget"
+alias fgc="systemctl status flexget"
+alias fgcc="flexget daemon status"
+alias fgr="systemctl restart flexget"
+alias fgrr="flexget daemon reload-config"
+alias fgl="echo ; tail -n300 /root/.config/flexget/flexget.log ; echo"
+alias fgs="nano /root/.config/flexget/config.yml"
+alias fgcheck="flexget check"
+alias fge="flexget execute"
+alias fla="systemctl start flood"
+alias flb="systemctl stop flood"
+alias flc="systemctl status flood"
+alias flr="systemctl restart flood"
+alias ssra="/etc/init.d/shadowsocks-r start"
+alias ssrb="/etc/init.d/shadowsocks-r stop"
+alias ssrc="/etc/init.d/shadowsocks-r status"
+alias ssrr="/etc/init.d/shadowsocks-r restart"
 alias ruisua="/appex/bin/serverSpeeder.sh start"
 alias ruisub="/appex/bin/serverSpeeder.sh stop"
 alias ruisuc="/appex/bin/serverSpeeder.sh status"
 alias ruisur="/appex/bin/serverSpeeder.sh restart"
 alias ruisus="nano /etc/serverSpeeder.conf"
+alias nginxr="/etc/init.d/nginx restart"
 
 alias yongle="du -sB GB"
 alias rtyongle="du -sB GB /home/${ANUSER}/rtorrent/download"
@@ -2805,7 +2837,6 @@ alias cdb="cd .."
 alias tree="tree --dirsfirst"
 alias ls="ls -hAv --color --group-directories-first"
 alias ll="ls -hAlvZ --color --group-directories-first"
-alias gclone="git clone --depth=1"
 
 alias cesu="echo;spdtest --share;echo"
 alias cesu2="echo;spdtest --share --server"
@@ -2813,9 +2844,12 @@ alias cesu3="echo;spdtest --list 2>&1 | head -n30 | grep --color=always -P '(\d+
 alias ios="iostat -dxm 1"
 alias vms="vmstat 1 10"
 alias vns="vnstat -l -i $wangka"
+alias vnss="vnstat -m && vnstat -d"
 
-alias sousuo1="find / -name"
+alias sousuo="find / -name"
 alias sousuo2="find /home/${ANUSER} -name"
+alias enableswap="dd if=/dev/zero of=/root/.swapfile bs=1M count=1024;mkswap /root/.swapfile;swapon /root/.swapfile;swapon -s"
+alias disableswap="swapoff /root/.swapfile;rm -f /.swapfile"
 
 alias yuan="nano /etc/apt/sources.list"
 alias cronr="/etc/init.d/cron restart"
@@ -2843,25 +2877,26 @@ EOF
 
 sed -i '/^fs.file-max.*/'d /etc/sysctl.conf
 sed -i '/^fs.nr_open.*/'d /etc/sysctl.conf
-echo "fs.file-max = 666666" >> /etc/sysctl.conf
-echo "fs.nr_open = 666666" >> /etc/sysctl.conf
+echo "fs.file-max = 1048576" >> /etc/sysctl.conf
+echo "fs.nr_open = 1048576" >> /etc/sysctl.conf
 
 sed -i '/.*nofile.*/'d /etc/security/limits.conf
 sed -i '/.*nproc.*/'d /etc/security/limits.conf
 
 cat>>/etc/security/limits.conf<<EOF
-* - nofile 666666
-* - nproc 666666
-$ANUSER soft nofile 666666
-$ANUSER hard nofile 666666
-root soft nofile 666666
-root hard nofile 666666
+* - nofile 1048575
+* - nproc 1048575
+root soft nofile 1048574
+root hard nofile 1048574
+$ANUSER hard nofile 1048573
+$ANUSER soft nofile 1048573
+
 EOF
 
 sed -i '/^DefaultLimitNOFILE.*/'d /etc/systemd/system.conf
 sed -i '/^DefaultLimitNPROC.*/'d /etc/systemd/system.conf
-echo "DefaultLimitNOFILE=666666" >> /etc/systemd/system.conf
-echo "DefaultLimitNPROC=666666" >> /etc/systemd/system.conf
+echo "DefaultLimitNOFILE=999998" >> /etc/systemd/system.conf
+echo "DefaultLimitNPROC=999998" >> /etc/systemd/system.conf
 
 # 将最大的分区的保留空间设置为 0%
 echo `df -k | sort -rn -k4 | awk '{print $1}' | head -1`
@@ -2945,14 +2980,14 @@ if   [[ ! $RTVERSION == No ]] && [[ $rt_installed == Yes ]]; then
      [[ $InsFlood == Yes ]] && [[   -e /etc/inexistence/01.Log/lock/flood.fail.lock ]] &&
      echo -e " ${red}Flood${normal}               ${bold}${baihongse} ERROR ${normal}    ${bold}${red}Installation FAILED${normal}" && { INSFAILED=1 ; FDFAILED=1 ; }
      echo -e " ${cyan}h5ai File Indexer${normal}   $(_if_running nginx              )   https://${ANUSER}:${ANPASS}@${serveripv4}/h5ai"
-     echo -e " ${cyan}webmin${normal}              $(_if_running webmin             )   https://${serveripv4}/webmin"
+   # echo -e " ${cyan}webmin${normal}              $(_if_running webmin             )   https://${serveripv4}/webmin"
 elif [[ ! $RTVERSION == No ]] && [[ $rt_installed == No  ]]; then
      echo -e " ${red}RuTorrent${normal}           ${bold}${baihongse} ERROR ${normal}    ${bold}${red}Installation FAILED${normal}"
      [[ $InsFlood == Yes ]] && [[ ! -e /etc/inexistence/01.Log/lock/flood.fail.lock ]] &&
      echo -e " ${cyan}Flood${normal}               $(_if_running npm                )   http://${serveripv4}${FDWEB}"
      [[ $InsFlood == Yes ]] && [[   -e /etc/inexistence/01.Log/lock/flood.fail.lock ]] &&
      echo -e " ${red}Flood${normal}               ${bold}${baihongse} ERROR ${normal}    ${bold}${red}Installation FAILED${normal}" && FDFAILED=1
-     echo -e " ${cyan}h5ai File Indexer${normal}   $(_if_running webmin             )   https://${ANUSER}:${ANPASS}@${serveripv4}/h5ai"
+   # echo -e " ${cyan}h5ai File Indexer${normal}   $(_if_running webmin             )   https://${ANUSER}:${ANPASS}@${serveripv4}/h5ai"
      RTFAILED=1 ; INSFAILED=1
 fi
 
